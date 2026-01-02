@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能销售预测计算器 | AI Sales Forecast Calculator</title>
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --secondary-color: #2c3e50;
+            --light-bg: #f8f9fa;
+            --border-color: #ddd;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --ai-color: #9b59b6;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.15);
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+        
+        /* 头部样式 */
+        .header {
+            background: linear-gradient(to right, var(--secondary-color), var(--primary-dark));
+            color: white;
+            padding: 25px 30px;
+            border-bottom: 5px solid var(--primary-color);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .ai-badge {
+            display: inline-block;
+            background: var(--ai-color);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        
+        /* 语言切换按钮 */
+        .language-switch {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .lang-btn {
+            padding: 8px 16px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+        
+        .lang-btn.active {
+            background: white;
+            color: var(--primary-dark);
+        }
+        
+        .lang-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* 主要内容区域 */
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
+            padding: 0;
+        }
+        
+        @media (max-width: 1200px) {
+            .content {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+        
+        .input-section, .result-section, .ai-section {
+            padding: 25px;
+        }
+        
+        .input-section {
+            background-color: var(--light-bg);
+        }
+        
+        .ai-section {
+            background-color: #f9f5ff;
+            border-left: 5px solid var(--ai-color);
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--secondary-color);
+        }
+        
+        .ai-section .section-title {
+            border-bottom-color: var(--ai-color);
+        }
+        
+        /* 输入字段样式 */
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        @media (max-width: 576px) {
+            .input-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .input-group {
+            margin-bottom: 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--secondary-color);
+            font-size: 15px;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 14px 15px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+            background-color: white;
+        }
+        
+        .input-field:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .input-field.blue-cell {
+            background-color: #e8f4fc;
+            border-color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        /* AI建议区域 */
+        .ai-suggestions {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+        }
+        
+        .ai-suggestion-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .ai-suggestion-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .suggestion-label {
+            font-weight: 600;
+            color: var(--ai-color);
+            margin-bottom: 5px;
+            font-size: 15px;
+        }
+        
+        .suggestion-value {
+            font-size: 16px;
+            color: #333;
+        }
+        
+        .suggestion-impact {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .impact-positive {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .impact-neutral {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+        
+        /* 结果样式 */
+        .results-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        
+        @media (max-width: 576px) {
+            .results-container {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .result-item {
+            background: var(--light-bg);
+            padding: 18px 20px;
+            border-radius: var(--border-radius);
+            border-left: 4px solid var(--primary-color);
+            transition: var(--transition);
+        }
+        
+        .result-item:hover {
+            transform: translateX(5px);
+            box-shadow: var(--shadow);
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .result-label {
+            font-weight: 500;
+            color: var(--secondary-color);
+            font-size: 15px;
+        }
+        
+        .result-value {
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--primary-color);
+        }
+        
+        .formula-note {
+            font-size: 13px;
+            color: #666;
+            font-style: italic;
+            margin-top: 5px;
+        }
+        
+        /* 性能指示器 */
+        .performance-box {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .performance-waiting {
+            background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+            color: #495057;
+            border-left: 4px solid #6c757d;
+        }
+        
+        .performance-good {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            color: #155724;
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .performance-warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            color: #856404;
+            border-left: 4px solid var(--warning-color);
+        }
+        
+        .performance-poor {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            color: #721c24;
+            border-left: 4px solid var(--danger-color);
+        }
+        
+        /* 按钮样式 */
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        
+        @media (max-width: 576px) {
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        button {
+            padding: 14px 24px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        
+        .calculate-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .calculate-btn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .reset-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .reset-btn:hover {
+            background-color: #5a6268;
+        }
+        
+        .export-btn {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .export-btn:hover {
+            background-color: #218838;
+        }
+        
+        .ai-btn {
+            background-color: var(--ai-color);
+            color: white;
+        }
+        
+        .ai-btn:hover {
+            background-color: #8e44ad;
+        }
+        
+        .ai-generate-btn {
+            background: linear-gradient(135deg, var(--ai-color), #8e44ad);
+            color: white;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        /* AI加载动画 */
+        .ai-loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .ai-loading.active {
+            display: block;
+        }
+        
+        .loader {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--ai-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+            background-color: var(--light-bg);
+        }
+        
+        /* 移动设备优化 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .language-switch {
+                align-self: flex-start;
+            }
+            
+            .input-section, .result-section, .ai-section {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .section-title {
+                font-size: 18px;
+            }
+            
+            button {
+                padding: 12px 20px;
+                font-size: 15px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 20px;
+            }
+            
+            .header p {
+                font-size: 14px;
+            }
+            
+            .input-field, .result-value {
+                font-size: 15px;
+            }
+            
+            .lang-btn {
+                padding: 6px 12px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div>
+                    <h1 id="title">智能销售预测计算器 <span class="ai-badge">AI增强</span></h1>
+                    <p id="subtitle">输入蓝色格子中的数据，AI将提供优化建议并计算预测指标</p>
+                </div>
+                <div class="language-switch">
+                    <button class="lang-btn active" onclick="switchLanguage('zh')">中文</button>
+                    <button class="lang-btn" onclick="switchLanguage('en')">English</button>
+                </div>
+            </div>
+        </header>
+        
+        <div class="content">
+            <div class="input-section">
+                <h2 class="section-title" id="inputTitle">预测输入 (蓝色格子)</h2>
+                
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="pricePerSale" id="labelPrice">每单售价 (RM)</label>
+                        <input type="number" id="pricePerSale" class="input-field blue-cell" placeholder="输入价格" step="10" min="0">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="unitCost" id="labelCost">每单成本 (RM)</label>
+                        <input type="number" id="unitCost" class="input-field blue-cell" placeholder="输入成本" step="10" min="0">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="spend" id="labelSpend">广告花费 (RM)</label>
+                        <input type="number" id="spend" class="input-field blue-cell" placeholder="输入广告花费" step="100" min="0">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="forecastImpressions" id="labelImpressions">曝光量</label>
+                        <input type="number" id="forecastImpressions" class="input-field blue-cell" placeholder="输入曝光量" min="0">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="clicks" id="labelClicks">点击量</label>
+                        <input type="number" id="clicks" class="input-field blue-cell" placeholder="输入点击量" min="0">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="leads" id="labelLeads">消息数/线索数</label>
+                        <input type="number" id="leads" class="input-field blue-cell" placeholder="输入线索数" min="0">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="closeRate" id="labelCloseRate">成交率 (%)</label>
+                        <input type="number" id="closeRate" class="input-field blue-cell" placeholder="输入成交率" step="0.1" min="0" max="100">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="targetROAS" id="labelTargetROAS">目标 ROAS</label>
+                        <input type="number" id="targetROAS" class="input-field blue-cell" placeholder="输入目标ROAS" step="0.1" min="0">
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button class="calculate-btn" onclick="calculateAll()" id="btnCalculate">
+                        <span>📊</span>
+                        <span>计算预测</span>
+                    </button>
+                    <button class="ai-btn" onclick="getAISuggestions()" id="btnAISuggest">
+                        <span>🤖</span>
+                        <span>AI优化建议</span>
+                    </button>
+                    <button class="reset-btn" onclick="resetToDefault()" id="btnReset">
+                        <span>🔄</span>
+                        <span>重置数据</span>
+                    </button>
+                    <button class="export-btn" onclick="exportResults()" id="btnExport">
+                        <span>💾</span>
+                        <span>导出结果</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="result-section">
+                <h2 class="section-title" id="resultTitle">预测结果</h2>
+                
+                <div class="results-container">
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-label" id="labelRevenue">收入 (RM)</div>
+                            <div class="result-value" id="revenue">RM 0</div>
+                        </div>
+                        <div class="formula-note" id="formulaRevenue">收入 = 销售额 × 每单售价</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-label" id="labelCogs">销售总成本 (RM)</div>
+                            <div class="result-value" id="cogs">RM 0</div>
+                        </div>
+                        <div class="formula-note" id="formulaCogs">销售总成本 = 销售额 × 每单成本</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-label" id="labelGrossProfit">每单毛利 (RM)</div>
+                            <div class="result-value" id="grossProfitPerSale">RM 0</div>
+                        </div>
+                        <div class="formula-note" id="formulaGrossProfit">每单毛利 = 每单售价 - 每单成本</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-label" id="labelSales">成交单数</div>
+                            <div class="result-value" id="sales">0</div>
+                        </div>
+                        <div class="formula-note" id="formulaSales">成交单数 = 消息数 × 成交率</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-label" id="labelCtr">点击率 (CTR)</div>
+                            <div class="result-value" id="ctr">0%</div>
+                        </div>
+                        <div class="formula-note" id="formulaCtr">CTR = (点击量 / 曝光量) × 100%</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-label" id="labelCpc">每次点击成本 (CPC)</div>
+                            <div class="result-value" id="cpc">RM 0</div>
+                        </div>
+                        <div class="formula-note" id="formulaCpc">CPC = 广告花费 / 点击量</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-label" id="labelCpm">每千次曝光成本 (CPM)</div>
+                            <div class="result-value" id="cpm">RM 0</div>
+                        </div>
+                        <div class="formula-note" id="formulaCpm">CPM = (广告花费 / 曝光量) × 1000</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-label" id="labelCvr">转化率 (CVR)</div>
+                            <div class="result-value" id="cvr">0%</div>
+                        </div>
+                        <div class="formula-note" id="formulaCvr">CVR = (销售额 / 点击量) × 100%</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-label" id="labelCpa">每单获客成本 (CPA)</div>
+                            <div class="result-value" id="cpa">RM 0</div>
+                        </div>
+                        <div class="formula-note" id="formulaCpa">CPA = 广告花费 / 销售额</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-label" id="labelRoas">投资回报率 (ROAS)</div>
+                            <div class="result-value" id="roas">0x</div>
+                        </div>
+                        <div class="formula-note" id="formulaRoas">ROAS = 收入 / 广告花费</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-label" id="labelBreakEvenRoas">盈亏平衡 ROAS</div>
+                            <div class="result-value" id="breakEvenROAS">0x</div>
+                        </div>
+                        <div class="formula-note" id="formulaBreakEvenRoas">盈亏平衡 ROAS = 1 / 毛利率</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-label" id="labelRpc">每次点击收入 (RPC)</div>
+                            <div class="result-value" id="rpc">RM 0</div>
+                        </div>
+                        <div class="formula-note" id="formulaRpc">RPC = (收入 / 点击量)</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-label" id="labelMaxCpc">目标 ROAS 下的最大 CPC</div>
+                            <div class="result-value" id="maxCPC">RM 0</div>
+                        </div>
+                        <div class="formula-note" id="formulaMaxCpc">最大 CPC = (每单毛利 / 目标 ROAS) × CVR</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-label" id="labelGrossMargin">毛利率</div>
+                            <div class="result-value" id="grossMargin">0%</div>
+                        </div>
+                        <div class="formula-note" id="formulaGrossMargin">毛利率 = (每单毛利 / 每单售价) × 100%</div>
+                    </div>
+                    
+                    <div class="result-item">
+                        <div class="result-header">
+                            <div class="result-label" id="labelNetProfit">净利润 (简化)</div>
+                            <div class="result-value" id="netProfit">RM 0</div>
+                        </div>
+                        <div class="formula-note" id="formulaNetProfit">净利润 = 毛利 - 广告花费</div>
+                    </div>
+                </div>
+                
+                <div id="performanceIndicator" class="performance-box performance-waiting">
+                    <span id="performanceLabel">表现状态</span>
+                    <span id="performanceText">等待输入数据...</span>
+                </div>
+            </div>
+            
+            <div class="ai-section">
+                <h2 class="section-title" id="aiTitle">AI优化建议</h2>
+                
+                <div class="ai-loading" id="aiLoading">
+                    <div class="loader"></div>
+                    <p id="aiLoadingText">AI正在分析数据并提供优化建议...</p>
+                </div>
+                
+                <div class="ai-suggestions" id="aiSuggestions">
+                    <div class="ai-suggestion-item">
+                        <div class="suggestion-label" id="aiSuggestion1Label">整体表现评估</div>
+                        <div class="suggestion-value" id="aiSuggestion1Value">等待输入数据以获取AI建议</div>
+                    </div>
+                    
+                    <div class="ai-suggestion-item">
+                        <div class="suggestion-label" id="aiSuggestion2Label">关键改进建议</div>
+                        <div class="suggestion-value" id="aiSuggestion2Value">输入数据后AI将提供具体优化建议</div>
+                    </div>
+                    
+                    <div class="ai-suggestion-item">
+                        <div class="suggestion-label" id="aiSuggestion3Label">预期优化效果</div>
+                        <div class="suggestion-value" id="aiSuggestion3Value">AI将预测优化后的业绩提升效果</div>
+                    </div>
+                </div>
+                
+                <button class="ai-generate-btn" onclick="generateAIScenario()" id="btnAIScenario">
+                    <span>🚀</span>
+                    <span>生成AI优化方案</span>
+                </button>
+                
+                <div class="button-group" style="margin-top: 20px;">
+                    <button class="ai-btn" onclick="applyAIOptimization()" id="btnApplyAI">
+                        <span>⚡</span>
+                        <span>应用AI优化</span>
+                    </button>
+                    <button class="reset-btn" onclick="resetAIResults()" id="btnResetAI">
+                        <span>↩️</span>
+                        <span>重置AI建议</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p id="footerText">© 2023 智能销售预测计算器 | AI增强的销售预测与优化系统</p>
+        </footer>
+    </div>
+
+    <script>
+        // 双语文本配置
+        const translations = {
+            zh: {
+                title: "智能销售预测计算器",
+                subtitle: "输入蓝色格子中的数据，AI将提供优化建议并计算预测指标",
+                inputTitle: "预测输入 (蓝色格子)",
+                resultTitle: "预测结果",
+                aiTitle: "AI优化建议",
+                footerText: "© 2023 智能销售预测计算器 | AI增强的销售预测与优化系统",
+                
+                // 输入标签
+                labelPrice: "每单售价 (RM)",
+                labelCost: "每单成本 (RM)",
+                labelSpend: "广告花费 (RM)",
+                labelImpressions: "曝光量",
+                labelClicks: "点击量",
+                labelLeads: "消息数/线索数",
+                labelCloseRate: "成交率 (%)",
+                labelTargetROAS: "目标 ROAS",
+                
+                // 按钮文本
+                btnCalculate: "计算预测",
+                btnAISuggest: "AI优化建议",
+                btnAIScenario: "生成AI优化方案",
+                btnApplyAI: "应用AI优化",
+                btnResetAI: "重置AI建议",
+                btnReset: "重置数据",
+                btnExport: "导出结果",
+                
+                // 结果标签
+                labelRevenue: "收入 (RM)",
+                labelCogs: "销售总成本 (RM)",
+                labelGrossProfit: "每单毛利 (RM)",
+                labelSales: "成交单数",
+                labelCtr: "点击率 (CTR)",
+                labelCpc: "每次点击成本 (CPC)",
+                labelCpm: "每千次曝光成本 (CPM)",
+                labelCvr: "转化率 (CVR)",
+                labelCpa: "每单获客成本 (CPA)",
+                labelRoas: "投资回报率 (ROAS)",
+                labelBreakEvenRoas: "盈亏平衡 ROAS",
+                labelRpc: "每次点击收入 (RPC)",
+                labelMaxCpc: "目标 ROAS 下的最大 CPC",
+                labelGrossMargin: "毛利率",
+                labelNetProfit: "净利润 (简化)",
+                
+                // AI建议标签
+                aiSuggestion1Label: "整体表现评估",
+                aiSuggestion2Label: "关键改进建议",
+                aiSuggestion3Label: "预期优化效果",
+                
+                // AI建议内容
+                aiSuggestion1Default: "等待输入数据以获取AI建议",
+                aiSuggestion2Default: "输入数据后AI将提供具体优化建议",
+                aiSuggestion3Default: "AI将预测优化后的业绩提升效果",
+                
+                // 加载文本
+                aiLoadingText: "AI正在分析数据并提供优化建议...",
+                
+                // 公式说明
+                formulaRevenue: "收入 = 销售额 × 每单售价",
+                formulaCogs: "销售总成本 = 销售额 × 每单成本",
+                formulaGrossProfit: "每单毛利 = 每单售价 - 每单成本",
+                formulaSales: "成交单数 = 消息数 × 成交率",
+                formulaCtr: "CTR = (点击量 / 曝光量) × 100%",
+                formulaCpc: "CPC = 广告花费 / 点击量",
+                formulaCpm: "CPM = (广告花费 / 曝光量) × 1000",
+                formulaCvr: "CVR = (销售额 / 点击量) × 100%",
+                formulaCpa: "CPA = 广告花费 / 销售额",
+                formulaRoas: "ROAS = 收入 / 广告花费",
+                formulaBreakEvenRoas: "盈亏平衡 ROAS = 1 / 毛利率",
+                formulaRpc: "RPC = (收入 / 点击量)",
+                formulaMaxCpc: "最大 CPC = (每单毛利 / 目标 ROAS) × CVR",
+                formulaGrossMargin: "毛利率 = (每单毛利 / 每单售价) × 100%",
+                formulaNetProfit: "净利润 = 毛利 - 广告花费",
+                
+                // 性能状态
+                performanceLabel: "表现状态",
+                performanceWaiting: "等待输入数据...",
+                performanceGood: "优秀 - 达到目标ROAS且盈利",
+                performanceWarning: "中等 - 盈利但ROAS偏低",
+                performancePoor: "需改进 - 净利润为负",
+                performanceGoodROAS: "良好 - 接近目标ROAS且盈利",
+                performanceNoData: "无数据 - 请输入预测数据",
+                
+                // 占位符
+                placeholderPrice: "输入价格",
+                placeholderCost: "输入成本",
+                placeholderSpend: "输入广告花费",
+                placeholderImpressions: "输入曝光量",
+                placeholderClicks: "输入点击量",
+                placeholderLeads: "输入线索数",
+                placeholderCloseRate: "输入成交率",
+                placeholderTargetROAS: "输入目标ROAS",
+                
+                // 导出报告
+                exportReportTitle: "销售预测计算报告",
+                exportGenerated: "生成时间",
+                exportInputs: "输入参数",
+                exportResults: "计算结果",
+                exportPerformance: "性能分析",
+                exportAIAdvice: "AI优化建议"
+            },
+            
+            en: {
+                title: "AI Sales Forecast Calculator",
+                subtitle: "Enter data in blue cells, AI will provide optimization suggestions and calculate metrics",
+                inputTitle: "Forecast Input (Blue Cells)",
+                resultTitle: "Forecast Results",
+                aiTitle: "AI Optimization Suggestions",
+                footerText: "© 2023 AI Sales Forecast Calculator | AI-enhanced sales prediction and optimization system",
+                
+                // 输入标签
+                labelPrice: "Price per Sale (RM)",
+                labelCost: "Unit Cost (RM)",
+                labelSpend: "Ad Spend (RM)",
+                labelImpressions: "Impressions",
+                labelClicks: "Clicks",
+                labelLeads: "Leads/Messages",
+                labelCloseRate: "Close Rate (%)",
+                labelTargetROAS: "Target ROAS",
+                
+                // 按钮文本
+                btnCalculate: "Calculate Forecast",
+                btnAISuggest: "AI Suggestions",
+                btnAIScenario: "Generate AI Scenario",
+                btnApplyAI: "Apply AI Optimization",
+                btnResetAI: "Reset AI Suggestions",
+                btnReset: "Reset Data",
+                btnExport: "Export Results",
+                
+                // 结果标签
+                labelRevenue: "Revenue (RM)",
+                labelCogs: "COGS Total (RM)",
+                labelGrossProfit: "Gross Profit per Sale (RM)",
+                labelSales: "Sales Quantity",
+                labelCtr: "Click-through Rate (CTR)",
+                labelCpc: "Cost Per Click (CPC)",
+                labelCpm: "Cost Per 1k Impressions (CPM)",
+                labelCvr: "Conversion Rate (CVR)",
+                labelCpa: "Cost Per Acquisition (CPA)",
+                labelRoas: "Return On Ad Spend (ROAS)",
+                labelBreakEvenRoas: "Break-even ROAS",
+                labelRpc: "Revenue Per Click (RPC)",
+                labelMaxCpc: "Max CPC @ Target ROAS",
+                labelGrossMargin: "Gross Margin",
+                labelNetProfit: "Net Profit (Simplified)",
+                
+                // AI建议标签
+                aiSuggestion1Label: "Overall Performance Assessment",
+                aiSuggestion2Label: "Key Improvement Suggestions",
+                aiSuggestion3Label: "Expected Optimization Results",
+                
+                // AI建议内容
+                aiSuggestion1Default: "Waiting for input data to get AI suggestions",
+                aiSuggestion2Default: "AI will provide specific optimization suggestions after data entry",
+                aiSuggestion3Default: "AI will predict performance improvement after optimization",
+                
+                // 加载文本
+                aiLoadingText: "AI is analyzing data and providing optimization suggestions...",
+                
+                // 公式说明
+                formulaRevenue: "Revenue = Sales × Price per Sale",
+                formulaCogs: "COGS = Sales × Unit Cost",
+                formulaGrossProfit: "Gross Profit = Price per Sale - Unit Cost",
+                formulaSales: "Sales = Leads × Close Rate",
+                formulaCtr: "CTR = (Clicks / Impressions) × 100%",
+                formulaCpc: "CPC = Ad Spend / Clicks",
+                formulaCpm: "CPM = (Ad Spend / Impressions) × 1000",
+                formulaCvr: "CVR = (Sales / Clicks) × 100%",
+                formulaCpa: "CPA = Ad Spend / Sales",
+                formulaRoas: "ROAS = Revenue / Ad Spend",
+                formulaBreakEvenRoas: "Break-even ROAS = 1 / Gross Margin",
+                formulaRpc: "RPC = Revenue / Clicks",
+                formulaMaxCpc: "Max CPC = (Gross Profit / Target ROAS) × CVR",
+                formulaGrossMargin: "Gross Margin = (Gross Profit / Price per Sale) × 100%",
+                formulaNetProfit: "Net Profit = Gross Profit - Ad Spend",
+                
+                // 性能状态
+                performanceLabel: "Performance Status",
+                performanceWaiting: "Waiting for input data...",
+                performanceGood: "Excellent - Target ROAS achieved and profitable",
+                performanceWarning: "Average - Profitable but low ROAS",
+                performancePoor: "Needs improvement - Negative net profit",
+                performanceGoodROAS: "Good - Close to target ROAS and profitable",
+                performanceNoData: "No data - Please enter forecast data",
+                
+                // 占位符
+                placeholderPrice: "Enter price",
+                placeholderCost: "Enter cost",
+                placeholderSpend: "Enter ad spend",
+                placeholderImpressions: "Enter impressions",
+                placeholderClicks: "Enter clicks",
+                placeholderLeads: "Enter leads",
+                placeholderCloseRate: "Enter close rate",
+                placeholderTargetROAS: "Enter target ROAS",
+                
+                // 导出报告
+                exportReportTitle: "Sales Forecast Report",
+                exportGenerated: "Generated",
+                exportInputs: "Input Parameters",
+                exportResults: "Calculation Results",
+                exportPerformance: "Performance Analysis",
+                exportAIAdvice: "AI Optimization Suggestions"
+            }
+        };
+        
+        // 当前语言
+        let currentLang = 'zh';
+        // 存储AI建议数据
+        let currentAISuggestions = null;
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置初始语言
+            switchLanguage('zh');
+            // 清空所有输入字段
+            resetToDefault();
+            // 初始计算（显示0值）
+            calculateAll();
+        });
+        
+        // 切换语言
+        function switchLanguage(lang) {
+            currentLang = lang;
+            
+            // 更新语言按钮状态
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.lang-btn[onclick="switchLanguage('${lang}')"]`).classList.add('active');
+            
+            // 更新所有文本
+            const texts = translations[lang];
+            
+            // 更新标题和描述
+            document.getElementById('title').textContent = texts.title;
+            document.getElementById('subtitle').textContent = texts.subtitle;
+            document.getElementById('inputTitle').textContent = texts.inputTitle;
+            document.getElementById('resultTitle').textContent = texts.resultTitle;
+            document.getElementById('aiTitle').textContent = texts.aiTitle;
+            document.getElementById('footerText').textContent = texts.footerText;
+            
+            // 更新输入标签
+            document.getElementById('labelPrice').textContent = texts.labelPrice;
+            document.getElementById('labelCost').textContent = texts.labelCost;
+            document.getElementById('labelSpend').textContent = texts.labelSpend;
+            document.getElementById('labelImpressions').textContent = texts.labelImpressions;
+            document.getElementById('labelClicks').textContent = texts.labelClicks;
+            document.getElementById('labelLeads').textContent = texts.labelLeads;
+            document.getElementById('labelCloseRate').textContent = texts.labelCloseRate;
+            document.getElementById('labelTargetROAS').textContent = texts.labelTargetROAS;
+            
+            // 更新占位符
+            document.getElementById('pricePerSale').placeholder = texts.placeholderPrice;
+            document.getElementById('unitCost').placeholder = texts.placeholderCost;
+            document.getElementById('spend').placeholder = texts.placeholderSpend;
+            document.getElementById('forecastImpressions').placeholder = texts.placeholderImpressions;
+            document.getElementById('clicks').placeholder = texts.placeholderClicks;
+            document.getElementById('leads').placeholder = texts.placeholderLeads;
+            document.getElementById('closeRate').placeholder = texts.placeholderCloseRate;
+            document.getElementById('targetROAS').placeholder = texts.placeholderTargetROAS;
+            
+            // 更新按钮文本
+            document.getElementById('btnCalculate').lastElementChild.textContent = texts.btnCalculate;
+            document.getElementById('btnAISuggest').lastElementChild.textContent = texts.btnAISuggest;
+            document.getElementById('btnAIScenario').lastElementChild.textContent = texts.btnAIScenario;
+            document.getElementById('btnApplyAI').lastElementChild.textContent = texts.btnApplyAI;
+            document.getElementById('btnResetAI').lastElementChild.textContent = texts.btnResetAI;
+            document.getElementById('btnReset').lastElementChild.textContent = texts.btnReset;
+            document.getElementById('btnExport').lastElementChild.textContent = texts.btnExport;
+            
+            // 更新结果标签
+            document.getElementById('labelRevenue').textContent = texts.labelRevenue;
+            document.getElementById('labelCogs').textContent = texts.labelCogs;
+            document.getElementById('labelGrossProfit').textContent = texts.labelGrossProfit;
+            document.getElementById('labelSales').textContent = texts.labelSales;
+            document.getElementById('labelCtr').textContent = texts.labelCtr;
+            document.getElementById('labelCpc').textContent = texts.labelCpc;
+            document.getElementById('labelCpm').textContent = texts.labelCpm;
+            document.getElementById('labelCvr').textContent = texts.labelCvr;
+            document.getElementById('labelCpa').textContent = texts.labelCpa;
+            document.getElementById('labelRoas').textContent = texts.labelRoas;
+            document.getElementById('labelBreakEvenRoas').textContent = texts.labelBreakEvenRoas;
+            document.getElementById('labelRpc').textContent = texts.labelRpc;
+            document.getElementById('labelMaxCpc').textContent = texts.labelMaxCpc;
+            document.getElementById('labelGrossMargin').textContent = texts.labelGrossMargin;
+            document.getElementById('labelNetProfit').textContent = texts.labelNetProfit;
+            
+            // 更新AI建议标签
+            document.getElementById('aiSuggestion1Label').textContent = texts.aiSuggestion1Label;
+            document.getElementById('aiSuggestion2Label').textContent = texts.aiSuggestion2Label;
+            document.getElementById('aiSuggestion3Label').textContent = texts.aiSuggestion3Label;
+            
+            // 更新加载文本
+            document.getElementById('aiLoadingText').textContent = texts.aiLoadingText;
+            
+            // 更新公式说明
+            document.getElementById('formulaRevenue').textContent = texts.formulaRevenue;
+            document.getElementById('formulaCogs').textContent = texts.formulaCogs;
+            document.getElementById('formulaGrossProfit').textContent = texts.formulaGrossProfit;
+            document.getElementById('formulaSales').textContent = texts.formulaSales;
+            document.getElementById('formulaCtr').textContent = texts.formulaCtr;
+            document.getElementById('formulaCpc').textContent = texts.formulaCpc;
+            document.getElementById('formulaCpm').textContent = texts.formulaCpm;
+            document.getElementById('formulaCvr').textContent = texts.formulaCvr;
+            document.getElementById('formulaCpa').textContent = texts.formulaCpa;
+            document.getElementById('formulaRoas').textContent = texts.formulaRoas;
+            document.getElementById('formulaBreakEvenRoas').textContent = texts.formulaBreakEvenRoas;
+            document.getElementById('formulaRpc').textContent = texts.formulaRpc;
+            document.getElementById('formulaMaxCpc').textContent = texts.formulaMaxCpc;
+            document.getElementById('formulaGrossMargin').textContent = texts.formulaGrossMargin;
+            document.getElementById('formulaNetProfit').textContent = texts.formulaNetProfit;
+            
+            // 更新性能标签
+            document.getElementById('performanceLabel').textContent = texts.performanceLabel;
+            
+            // 如果当前没有AI建议，重置AI建议区域
+            if (!currentAISuggestions) {
+                document.getElementById('aiSuggestion1Value').textContent = texts.aiSuggestion1Default;
+                document.getElementById('aiSuggestion2Value').textContent = texts.aiSuggestion2Default;
+                document.getElementById('aiSuggestion3Value').textContent = texts.aiSuggestion3Default;
+            }
+            
+            // 重新计算当前性能状态
+            const hasData = checkInputData();
+            if (!hasData) {
+                document.getElementById('performanceText').textContent = texts.performanceWaiting;
+                document.getElementById('performanceIndicator').className = 'performance-box performance-waiting';
+            } else {
+                // 重新计算并更新性能状态
+                calculateAll();
+            }
+        }
+        
+        // 检查是否有有效的输入数据
+        function checkInputData() {
+            const inputs = document.querySelectorAll('.blue-cell');
+            let hasValidData = false;
+            
+            for (let input of inputs) {
+                const value = input.value;
+                // 检查是否有值且不是空字符串
+                if (value !== null && value !== '' && value.trim() !== '') {
+                    const numValue = parseFloat(value);
+                    // 检查是否为有效数字且不是NaN
+                    if (!isNaN(numValue)) {
+                        hasValidData = true;
+                        break;
+                    }
+                }
+            }
+            return hasValidData;
+        }
+        
+        // 主计算函数
+        function calculateAll() {
+            // 获取输入值，空值视为0
+            const pricePerSale = parseFloat(document.getElementById('pricePerSale').value) || 0;
+            const unitCost = parseFloat(document.getElementById('unitCost').value) || 0;
+            const spend = parseFloat(document.getElementById('spend').value) || 0;
+            const forecastImpressions = parseFloat(document.getElementById('forecastImpressions').value) || 0;
+            const clicks = parseFloat(document.getElementById('clicks').value) || 0;
+            const leads = parseFloat(document.getElementById('leads').value) || 0;
+            const closeRate = parseFloat(document.getElementById('closeRate').value) || 0;
+            const targetROAS = parseFloat(document.getElementById('targetROAS').value) || 0;
+            
+            // 检查是否有有效的输入数据
+            const hasValidInput = checkInputData();
+            
+            // 计算基本指标
+            const sales = Math.round(leads * (closeRate / 100));
+            const revenue = sales * pricePerSale;
+            const cogs = sales * unitCost;
+            const grossProfitPerSale = pricePerSale - unitCost;
+            const totalGrossProfit = sales * grossProfitPerSale;
+            const netProfit = totalGrossProfit - spend;
+            
+            // 计算广告指标
+            const ctr = forecastImpressions > 0 ? (clicks / forecastImpressions) * 100 : 0;
+            const cpc = clicks > 0 ? spend / clicks : 0;
+            const cpm = forecastImpressions > 0 ? (spend / forecastImpressions) * 1000 : 0;
+            const cvr = clicks > 0 ? (sales / clicks) * 100 : 0;
+            const cpa = sales > 0 ? spend / sales : 0;
+            const roas = spend > 0 ? revenue / spend : 0;
+            const grossMargin = pricePerSale > 0 ? (grossProfitPerSale / pricePerSale) * 100 : 0;
+            const breakEvenROAS = grossMargin > 0 ? 100 / grossMargin : 0;
+            const rpc = clicks > 0 ? revenue / clicks : 0;
+            const maxCPC = (grossProfitPerSale / (targetROAS || 1)) * (cvr / 100);
+            
+            // 更新结果到页面
+            document.getElementById('revenue').textContent = 'RM ' + formatNumber(revenue.toFixed(2));
+            document.getElementById('cogs').textContent = 'RM ' + formatNumber(cogs.toFixed(2));
+            document.getElementById('grossProfitPerSale').textContent = 'RM ' + grossProfitPerSale.toFixed(2);
+            document.getElementById('ctr').textContent = ctr.toFixed(2) + '%';
+            document.getElementById('cpc').textContent = 'RM ' + cpc.toFixed(2);
+            document.getElementById('cpm').textContent = 'RM ' + cpm.toFixed(2);
+            document.getElementById('cvr').textContent = cvr.toFixed(2) + '%';
+            document.getElementById('cpa').textContent = 'RM ' + cpa.toFixed(2);
+            document.getElementById('sales').textContent = sales;
+            document.getElementById('roas').textContent = roas.toFixed(2) + 'x';
+            document.getElementById('breakEvenROAS').textContent = breakEvenROAS.toFixed(2) + 'x';
+            document.getElementById('rpc').textContent = 'RM ' + rpc.toFixed(2);
+            document.getElementById('maxCPC').textContent = 'RM ' + maxCPC.toFixed(2);
+            document.getElementById('grossMargin').textContent = grossMargin.toFixed(2) + '%';
+            document.getElementById('netProfit').textContent = 'RM ' + formatNumber(netProfit.toFixed(2));
+            
+            // 更新性能指示器
+            updatePerformance(hasValidInput, roas, targetROAS, netProfit);
+        }
+        
+        // 更新性能指示器
+        function updatePerformance(hasValidInput, roas, targetROAS, netProfit) {
+            const indicator = document.getElementById('performanceIndicator');
+            const performanceText = document.getElementById('performanceText');
+            const texts = translations[currentLang];
+            
+            // 如果没有有效输入
+            if (!hasValidInput) {
+                indicator.className = 'performance-box performance-waiting';
+                performanceText.textContent = texts.performanceWaiting;
+                return;
+            }
+            
+            // 有有效输入时进行评估
+            let performanceClass = '';
+            let text = '';
+            
+            if (targetROAS > 0) {
+                // 有设置目标ROAS的情况
+                if (roas >= targetROAS && netProfit >= 0) {
+                    performanceClass = 'performance-good';
+                    text = texts.performanceGood;
+                } else if (roas >= targetROAS * 0.8 && netProfit >= 0) {
+                    performanceClass = 'performance-warning';
+                    text = texts.performanceGoodROAS;
+                } else if (netProfit >= 0) {
+                    performanceClass = 'performance-warning';
+                    text = texts.performanceWarning;
+                } else {
+                    performanceClass = 'performance-poor';
+                    text = texts.performancePoor;
+                }
+            } else {
+                // 没有设置目标ROAS的情况
+                if (netProfit >= 0) {
+                    performanceClass = 'performance-warning';
+                    text = texts.performanceWarning;
+                } else {
+                    performanceClass = 'performance-poor';
+                    text = texts.performancePoor;
+                }
+            }
+            
+            indicator.className = 'performance-box ' + performanceClass;
+            performanceText.textContent = text;
+        }
+        
+        // 格式化数字显示
+        function formatNumber(numStr) {
+            const num = parseFloat(numStr);
+            if (isNaN(num)) return '0.00';
+            
+            // 对于大数字，添加千位分隔符
+            if (Math.abs(num) >= 1000) {
+                return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            }
+            return num.toFixed(2);
+        }
+        
+        // 重置数据到空值
+        function resetToDefault() {
+            document.getElementById('pricePerSale').value = '';
+            document.getElementById('unitCost').value = '';
+            document.getElementById('spend').value = '';
+            document.getElementById('forecastImpressions').value = '';
+            document.getElementById('clicks').value = '';
+            document.getElementById('leads').value = '';
+            document.getElementById('closeRate').value = '';
+            document.getElementById('targetROAS').value = '';
+            
+            calculateAll();
+            resetAIResults();
+        }
+        
+        // 获取AI建议
+        async function getAISuggestions() {
+            // 检查是否有数据
+            if (!checkInputData()) {
+                alert(currentLang === 'zh' ? '请先输入数据以获取AI建议！' : 'Please enter data first to get AI suggestions!');
+                return;
+            }
+            
+            // 显示加载动画
+            const aiLoading = document.getElementById('aiLoading');
+            aiLoading.classList.add('active');
+            
+            try {
+                // 获取当前输入数据
+                const inputData = {
+                    pricePerSale: parseFloat(document.getElementById('pricePerSale').value) || 0,
+                    unitCost: parseFloat(document.getElementById('unitCost').value) || 0,
+                    spend: parseFloat(document.getElementById('spend').value) || 0,
+                    forecastImpressions: parseFloat(document.getElementById('forecastImpressions').value) || 0,
+                    clicks: parseFloat(document.getElementById('clicks').value) || 0,
+                    leads: parseFloat(document.getElementById('leads').value) || 0,
+                    closeRate: parseFloat(document.getElementById('closeRate').value) || 0,
+                    targetROAS: parseFloat(document.getElementById('targetROAS').value) || 0,
+                    language: currentLang
+                };
+                
+                // 发送请求到后端AI服务
+                const response = await fetch('/ai_suggestions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(inputData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('AI服务请求失败');
+                }
+                
+                const aiData = await response.json();
+                
+                // 存储AI建议
+                currentAISuggestions = aiData;
+                
+                // 更新AI建议显示
+                updateAISuggestionsDisplay(aiData);
+                
+                // 如果有优化后的数据，显示在AI区域
+                if (aiData.optimized_data) {
+                    displayOptimizedData(aiData.optimized_data);
+                }
+                
+            } catch (error) {
+                console.error('AI建议获取失败:', error);
+                // 如果AI服务不可用，使用本地AI逻辑
+                generateLocalAISuggestions();
+            } finally {
+                // 隐藏加载动画
+                aiLoading.classList.remove('active');
+            }
+        }
+        
+        // 更新AI建议显示
+        function updateAISuggestionsDisplay(aiData) {
+            const texts = translations[currentLang];
+            
+            // 更新AI建议内容
+            document.getElementById('aiSuggestion1Value').innerHTML = 
+                `<strong>${aiData.overall_assessment || texts.aiSuggestion1Default}</strong>`;
+            
+            document.getElementById('aiSuggestion2Value').innerHTML = 
+                `${aiData.improvement_suggestions || texts.aiSuggestion2Default}`;
+            
+            document.getElementById('aiSuggestion3Value').innerHTML = 
+                `${aiData.expected_results || texts.aiSuggestion3Default}`;
+            
+            // 如果有关键指标，添加视觉标记
+            if (aiData.key_metrics) {
+                const metricsHTML = aiData.key_metrics.map(metric => {
+                    let impactClass = 'impact-neutral';
+                    if (metric.impact === 'positive') impactClass = 'impact-positive';
+                    else if (metric.impact === 'negative') impactClass = 'impact-negative';
+                    
+                    return `${metric.name}: ${metric.value} <span class="suggestion-impact ${impactClass}">${metric.impact_label}</span>`;
+                }).join('<br>');
+                
+                document.getElementById('aiSuggestion3Value').innerHTML += `<br><br>${metricsHTML}`;
+            }
+        }
+        
+        // 本地AI建议生成（备用）
+        function generateLocalAISuggestions() {
+            // 获取输入数据
+            const pricePerSale = parseFloat(document.getElementById('pricePerSale').value) || 0;
+            const unitCost = parseFloat(document.getElementById('unitCost').value) || 0;
+            const spend = parseFloat(document.getElementById('spend').value) || 0;
+            const forecastImpressions = parseFloat(document.getElementById('forecastImpressions').value) || 0;
+            const clicks = parseFloat(document.getElementById('clicks').value) || 0;
+            const leads = parseFloat(document.getElementById('leads').value) || 0;
+            const closeRate = parseFloat(document.getElementById('closeRate').value) || 0;
+            const targetROAS = parseFloat(document.getElementById('targetROAS').value) || 0;
+            
+            // 计算当前指标
+            const sales = Math.round(leads * (closeRate / 100));
+            const revenue = sales * pricePerSale;
+            const grossProfitPerSale = pricePerSale - unitCost;
+            const totalGrossProfit = sales * grossProfitPerSale;
+            const netProfit = totalGrossProfit - spend;
+            const roas = spend > 0 ? revenue / spend : 0;
+            const ctr = forecastImpressions > 0 ? (clicks / forecastImpressions) * 100 : 0;
+            const cvr = clicks > 0 ? (sales / clicks) * 100 : 0;
+            
+            // 生成AI建议
+            const suggestions = {
+                overall_assessment: currentLang === 'zh' 
+                    ? netProfit >= 0 ? "整体表现良好，已实现盈利" : "当前表现不佳，净利润为负"
+                    : netProfit >= 0 ? "Overall performance is good, already profitable" : "Current performance is poor, negative net profit",
+                
+                improvement_suggestions: currentLang === 'zh'
+                    ? generateChineseSuggestions(pricePerSale, unitCost, ctr, cvr, closeRate, roas, targetROAS)
+                    : generateEnglishSuggestions(pricePerSale, unitCost, ctr, cvr, closeRate, roas, targetROAS),
+                
+                expected_results: currentLang === 'zh'
+                    ? generateChineseExpectedResults(roas, targetROAS, netProfit)
+                    : generateEnglishExpectedResults(roas, targetROAS, netProfit),
+                
+                key_metrics: [
+                    { 
+                        name: currentLang === 'zh' ? "当前ROAS" : "Current ROAS", 
+                        value: roas.toFixed(2) + 'x',
+                        impact: roas >= (targetROAS || 2) ? 'positive' : 'negative',
+                        impact_label: currentLang === 'zh' ? (roas >= (targetROAS || 2) ? '良好' : '需改进') : (roas >= (targetROAS || 2) ? 'Good' : 'Needs Improvement')
+                    },
+                    { 
+                        name: currentLang === 'zh' ? "净利润" : "Net Profit", 
+                        value: 'RM ' + formatNumber(netProfit.toFixed(2)),
+                        impact: netProfit >= 0 ? 'positive' : 'negative',
+                        impact_label: currentLang === 'zh' ? (netProfit >= 0 ? '盈利' : '亏损') : (netProfit >= 0 ? 'Profitable' : 'Loss')
+                    }
+                ]
+            };
+            
+            // 生成优化后的数据
+            const optimizedData = generateOptimizedData(pricePerSale, unitCost, spend, forecastImpressions, clicks, leads, closeRate, targetROAS);
+            suggestions.optimized_data = optimizedData;
+            
+            // 存储并显示AI建议
+            currentAISuggestions = suggestions;
+            updateAISuggestionsDisplay(suggestions);
+        }
+        
+        // 生成中文建议
+        function generateChineseSuggestions(pricePerSale, unitCost, ctr, cvr, closeRate, roas, targetROAS) {
+            let suggestions = [];
+            
+            if (ctr < 1) {
+                suggestions.push("点击率(CTR)偏低，建议优化广告创意和定位");
+            }
+            
+            if (cvr < 2) {
+                suggestions.push("转化率(CVR)较低，建议优化落地页和用户体验");
+            }
+            
+            if (closeRate < 20) {
+                suggestions.push("成交率较低，建议加强销售跟进和客户沟通");
+            }
+            
+            if (pricePerSale - unitCost < pricePerSale * 0.3) {
+                suggestions.push("毛利率偏低，考虑优化成本或调整定价策略");
+            }
+            
+            if (roas < (targetROAS || 2)) {
+                suggestions.push("ROAS未达目标，建议调整广告投放策略或优化转化漏斗");
+            }
+            
+            if (suggestions.length === 0) {
+                suggestions.push("当前设置较为合理，保持现有策略并持续监控");
+            }
+            
+            return suggestions.join('<br>• ');
+        }
+        
+        // 生成英文建议
+        function generateEnglishSuggestions(pricePerSale, unitCost, ctr, cvr, closeRate, roas, targetROAS) {
+            let suggestions = [];
+            
+            if (ctr < 1) {
+                suggestions.push("CTR is low, consider optimizing ad creatives and targeting");
+            }
+            
+            if (cvr < 2) {
+                suggestions.push("CVR is low, optimize landing pages and user experience");
+            }
+            
+            if (closeRate < 20) {
+                suggestions.push("Close rate is low, improve sales follow-up and customer communication");
+            }
+            
+            if (pricePerSale - unitCost < pricePerSale * 0.3) {
+                suggestions.push("Gross margin is low, consider cost optimization or price adjustment");
+            }
+            
+            if (roas < (targetROAS || 2)) {
+                suggestions.push("ROAS below target, adjust ad strategy or optimize conversion funnel");
+            }
+            
+            if (suggestions.length === 0) {
+                suggestions.push("Current settings are reasonable, maintain strategy and continue monitoring");
+            }
+            
+            return suggestions.join('<br>• ');
+        }
+        
+        // 生成中文预期结果
+        function generateChineseExpectedResults(roas, targetROAS, netProfit) {
+            if (netProfit < 0) {
+                return "实施优化后，预计可扭亏为盈，ROAS提升30%-50%";
+            } else if (roas < (targetROAS || 2)) {
+                return "优化后预计ROAS提升20%-40%，净利润增长15%-30%";
+            } else {
+                return "进一步优化可提升ROAS 10%-20%，增强盈利能力";
+            }
+        }
+        
+        // 生成英文预期结果
+        function generateEnglishExpectedResults(roas, targetROAS, netProfit) {
+            if (netProfit < 0) {
+                return "After optimization, expected to turn profitable with 30%-50% ROAS improvement";
+            } else if (roas < (targetROAS || 2)) {
+                return "Expected 20%-40% ROAS improvement and 15%-30% net profit growth";
+            } else {
+                return "Further optimization could increase ROAS by 10%-20% and enhance profitability";
+            }
+        }
+        
+        // 生成优化后的数据
+        function generateOptimizedData(pricePerSale, unitCost, spend, impressions, clicks, leads, closeRate, targetROAS) {
+            // 基于当前数据生成优化后的建议值
+            return {
+                optimized_pricePerSale: pricePerSale * (pricePerSale - unitCost < pricePerSale * 0.3 ? 1.1 : 1), // 如果毛利率低，提高价格
+                optimized_unitCost: unitCost * 0.95, // 降低5%成本
+                optimized_spend: spend * (spend > revenue * 0.5 ? 0.8 : 1.2), // 如果广告花费过高则减少，否则增加
+                optimized_impressions: impressions * 1.15, // 增加15%曝光
+                optimized_clicks: clicks * (ctr < 1 ? 1.25 : 1.1), // 如果CTR低，大幅增加点击
+                optimized_leads: leads * (cvr < 2 ? 1.2 : 1.1), // 增加线索
+                optimized_closeRate: Math.min(closeRate * 1.15, 100), // 提高成交率，不超过100%
+                optimized_targetROAS: targetROAS || 2.5
+            };
+        }
+        
+        // 显示优化后的数据
+        function displayOptimizedData(optimizedData) {
+            // 在AI区域显示优化后的数值
+            let html = '<div style="margin-top: 15px; padding: 10px; background: #f0f8ff; border-radius: 5px; border-left: 3px solid #3498db;">';
+            html += '<strong>' + (currentLang === 'zh' ? 'AI优化建议值：' : 'AI Optimized Values:') + '</strong><br>';
+            
+            for (const [key, value] of Object.entries(optimizedData)) {
+                const label = key.replace('optimized_', '').replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                const formattedValue = typeof value === 'number' ? value.toFixed(2) : value;
+                html += `${label}: ${formattedValue}<br>`;
+            }
+            
+            html += '</div>';
+            
+            // 添加到AI建议区域
+            document.getElementById('aiSuggestion3Value').innerHTML += html;
+        }
+        
+        // 生成AI优化方案
+        function generateAIScenario() {
+            getAISuggestions();
+        }
+        
+        // 应用AI优化
+        function applyAIOptimization() {
+            if (!currentAISuggestions || !currentAISuggestions.optimized_data) {
+                alert(currentLang === 'zh' ? '请先获取AI建议！' : 'Please get AI suggestions first!');
+                return;
+            }
+            
+            const optimized = currentAISuggestions.optimized_data;
+            
+            // 应用优化后的值到输入字段
+            document.getElementById('pricePerSale').value = optimized.optimized_pricePerSale ? optimized.optimized_pricePerSale.toFixed(2) : '';
+            document.getElementById('unitCost').value = optimized.optimized_unitCost ? optimized.optimized_unitCost.toFixed(2) : '';
+            document.getElementById('spend').value = optimized.optimized_spend ? optimized.optimized_spend.toFixed(2) : '';
+            document.getElementById('forecastImpressions').value = optimized.optimized_impressions ? Math.round(optimized.optimized_impressions) : '';
+            document.getElementById('clicks').value = optimized.optimized_clicks ? Math.round(optimized.optimized_clicks) : '';
+            document.getElementById('leads').value = optimized.optimized_leads ? Math.round(optimized.optimized_leads) : '';
+            document.getElementById('closeRate').value = optimized.optimized_closeRate ? optimized.optimized_closeRate.toFixed(2) : '';
+            document.getElementById('targetROAS').value = optimized.optimized_targetROAS ? optimized.optimized_targetROAS.toFixed(2) : '';
+            
+            // 重新计算
+            calculateAll();
+            
+            alert(currentLang === 'zh' ? 'AI优化已应用！' : 'AI optimization applied!');
+        }
+        
+        // 重置AI建议
+        function resetAIResults() {
+            const texts = translations[currentLang];
+            document.getElementById('aiSuggestion1Value').textContent = texts.aiSuggestion1Default;
+            document.getElementById('aiSuggestion2Value').textContent = texts.aiSuggestion2Default;
+            document.getElementById('aiSuggestion3Value').textContent = texts.aiSuggestion3Default;
+            currentAISuggestions = null;
+        }
+        
+        // 导出结果
+        function exportResults() {
+            const inputs = {};
+            const results = {};
+            const texts = translations[currentLang];
+            
+            // 检查是否有数据
+            if (!checkInputData()) {
+                alert(currentLang === 'zh' ? '没有数据可导出！请先输入数据。' : 'No data to export! Please enter data first.');
+                return;
+            }
+            
+            // 收集输入数据
+            const inputElements = {
+                pricePerSale: texts.labelPrice,
+                unitCost: texts.labelCost,
+                spend: texts.labelSpend,
+                forecastImpressions: texts.labelImpressions,
+                clicks: texts.labelClicks,
+                leads: texts.labelLeads,
+                closeRate: texts.labelCloseRate,
+                targetROAS: texts.labelTargetROAS
+            };
+            
+            for (const [id, label] of Object.entries(inputElements)) {
+                const element = document.getElementById(id);
+                inputs[label] = element.value || '0';
+            }
+            
+            // 收集结果数据
+            document.querySelectorAll('.result-item').forEach(item => {
+                const label = item.querySelector('.result-label').textContent;
+                const value = item.querySelector('.result-value').textContent;
+                results[label] = value;
+            });
+            
+            // 收集AI建议
+            let aiAdvice = '';
+            if (currentAISuggestions) {
+                aiAdvice = '\n\n' + texts.exportAIAdvice + ':\n';
+                aiAdvice += '='.repeat(30) + '\n';
+                aiAdvice += document.getElementById('aiSuggestion1Value').textContent + '\n';
+                aiAdvice += document.getElementById('aiSuggestion2Value').textContent + '\n';
+                aiAdvice += document.getElementById('aiSuggestion3Value').textContent + '\n';
+            }
+            
+            // 创建报告文本
+            let report = texts.exportReportTitle + '\n';
+            report += texts.exportGenerated + ': ' + new Date().toLocaleString() + '\n\n';
+            report += texts.exportInputs + ':\n';
+            report += '='.repeat(30) + '\n';
+            for (const [key, value] of Object.entries(inputs)) {
+                report += `${key}: ${value}\n`;
+            }
+            
+            report += '\n' + texts.exportResults + ':\n';
+            report += '='.repeat(30) + '\n';
+            for (const [key, value] of Object.entries(results)) {
+                report += `${key}: ${value}\n`;
+            }
+            
+            // 性能状态
+            report += '\n' + texts.exportPerformance + ':\n';
+            report += '='.repeat(30) + '\n';
+            report += document.getElementById('performanceText').textContent + '\n';
+            
+            // 添加AI建议
+            report += aiAdvice;
+            
+            // 创建下载链接
+            const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `AI_Sales_Forecast_${new Date().toISOString().slice(0,10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert(currentLang === 'zh' ? '报告已导出为文本文件！' : 'Report exported as text file!');
+        }
+        
+        // 为所有输入字段添加自动计算功能
+        const inputFields = document.querySelectorAll('.input-field');
+        inputFields.forEach(field => {
+            field.addEventListener('input', function() {
+                // 延迟计算，避免频繁计算
+                clearTimeout(window.calculationTimeout);
+                window.calculationTimeout = setTimeout(calculateAll, 300);
+            });
+        });
+    </script>
+</body>
+</html>
